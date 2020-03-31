@@ -1,0 +1,37 @@
+server:
+  port: 9420
+spring:
+  messages:
+    basename: i18n/Messages,i18n/Pages
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource    # 配置当前要使用的数据源的操作类型
+    driver-class-name: com.mysql.cj.jdbc.Driver     # 配置MySQL的驱动程序类
+    url: jdbc:mysql://207.148.96.113:3306/mydemo?serverTimezone=UTC         # 数据库连接地址
+    username: root                                  # 数据库用户名
+    password: Seesaw123!                                  # 数据库连接密码
+    dbcp2:                                          # 进行数据库连接池的配置
+      min-idle: 5                                   # 数据库连接池的最小维持连接数
+      initial-size: 5                               # 初始化提供的连接数
+      max-total: 5                                  # 最大的连接数
+      max-wait-millis: 200                          # 等待连接获取的最大超时时间
+  redis:
+    database: 0
+    password: The0ne
+    port: 6379
+    host: 207.148.96.113
+    lettuce:
+      pool:
+        min-idle: 5
+        max-idle: 10
+        max-active: 8
+        max-wait: 10ms
+        shutdown-timeout: 100ms
+bezkoder:
+  app:
+    jwtSecret: bezKoderSecretKey
+    jwtExpirationMs: 86400000
+#log4j
+logging:
+  level:
+    root: DEBUG
+#    org.springframework.transaction: DEBUG
