@@ -5,6 +5,8 @@ import com.seesawin.models.Ordermain;
 import com.seesawin.payload.request.GetOrdeByUserNamerRequest;
 import com.seesawin.payload.request.OrderRequest;
 import com.seesawin.payload.response.CommonResponse;
+import com.seesawin.payload.response.OrderListResponse;
+import com.seesawin.payload.response.OrderdetailResponse;
 import com.seesawin.repository.OrderdetailMapper;
 import com.seesawin.repository.OrdermainMapper;
 import io.swagger.annotations.ApiOperation;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -76,21 +79,30 @@ public class OrderController {
 
     @GetMapping("/orderNo/{orderNo}")
     @ApiOperation(
-            value = "根據username查詢訂單(restful)",
+            value = "根據orderNo查詢訂單(restful)",
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
     public ResponseEntity<?> getOrder(@Valid @PathVariable int orderNo) {
         Ordermain ordermain = ordermainMapper.selectByPrimaryKey(orderNo);
         List<Orderdetail> orderdetailList = orderdetailMapper.selectByOrderNo(orderNo);
+        List<OrderdetailResponse> collect = orderdetailList.stream().map(od -> {
+            OrderdetailResponse newOd = new OrderdetailResponse();
+            newOd.setCount(od.getCount());
+            newOd.setName(od.getName());
+            newOd.setPrice(od.getPrice());
+            return newOd;
+        }).collect(Collectors.toList());
 
-        Map<String, Object> resultParam = new HashMap<>();
-        resultParam.put("ordermain", ordermain);
-        resultParam.put("orderdetailList", orderdetailList);
+        OrderListResponse orderListResponse = new OrderListResponse();
+        orderListResponse.setOrderNo(orderNo);
+        orderListResponse.setUsername(ordermain.getUsername());
+        orderListResponse.setTotalPrice(ordermain.getTotalprice());
+        orderListResponse.setOrderDetails(collect);
 
         CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
-        response.setData(resultParam);
+        response.setData(orderListResponse);
         return ResponseEntity.ok(response);
     }
 
@@ -100,23 +112,11 @@ public class OrderController {
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
     public ResponseEntity<?> getOrder(@Valid @PathVariable String username) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        List<Ordermain> ordermainList = ordermainMapper.selectByUsername(username);
-        ordermainList.forEach(odMain -> {
-            Map<String, Object> orderMap = new HashMap<>();
-            List<Orderdetail> orderdetailList = orderdetailMapper.selectByOrderNo(odMain.getOrderno());
-            orderMap.put("ordermain", odMain);
-            orderMap.put("orderdetailList", orderdetailList);
-            resultList.add(orderMap);
-        });
-
-        Map<String, Object> resultParam = new HashMap<>();
-        resultParam.put("orderList", resultList);
-
+        List<OrderListResponse> orderListResponse = this.getOrderListResponse(username);
         CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
-        response.setData(resultParam);
+        response.setData(orderListResponse);
         return ResponseEntity.ok(response);
     }
 
@@ -126,23 +126,11 @@ public class OrderController {
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
     public ResponseEntity<?> getOrderByQueryString(@Valid @RequestParam String username) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        List<Ordermain> ordermainList = ordermainMapper.selectByUsername(username);
-        ordermainList.forEach(odMain -> {
-            Map<String, Object> orderMap = new HashMap<>();
-            List<Orderdetail> orderdetailList = orderdetailMapper.selectByOrderNo(odMain.getOrderno());
-            orderMap.put("ordermain", odMain);
-            orderMap.put("orderdetailList", orderdetailList);
-            resultList.add(orderMap);
-        });
-
-        Map<String, Object> resultParam = new HashMap<>();
-        resultParam.put("orderList", resultList);
-
+        List<OrderListResponse> orderListResponse = this.getOrderListResponse(username);
         CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
-        response.setData(resultParam);
+        response.setData(orderListResponse);
         return ResponseEntity.ok(response);
     }
 
@@ -152,24 +140,35 @@ public class OrderController {
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
     public ResponseEntity<?> getOrderByPost(@Valid @RequestBody GetOrdeByUserNamerRequest getOrdeByUserNamerRequest) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        List<Ordermain> ordermainList = ordermainMapper.selectByUsername(getOrdeByUserNamerRequest.getUsername());
-        ordermainList.forEach(odMain -> {
-            Map<String, Object> orderMap = new HashMap<>();
-            List<Orderdetail> orderdetailList = orderdetailMapper.selectByOrderNo(odMain.getOrderno());
-            orderMap.put("ordermain", odMain);
-            orderMap.put("orderdetailList", orderdetailList);
-            resultList.add(orderMap);
-        });
-
-        Map<String, Object> resultParam = new HashMap<>();
-        resultParam.put("orderList", resultList);
-
+        List<OrderListResponse> orderListResponse = this.getOrderListResponse(getOrdeByUserNamerRequest.getUsername());
         CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
-        response.setData(resultParam);
+        response.setData(orderListResponse);
         return ResponseEntity.ok(response);
+    }
+
+    private List<OrderListResponse> getOrderListResponse(String username) {
+        List<OrderListResponse> resultList = new ArrayList<>();
+        List<Ordermain> ordermainList = ordermainMapper.selectByUsername(username);
+        ordermainList.forEach(odMain -> {
+            List<Orderdetail> orderdetailList = orderdetailMapper.selectByOrderNo(odMain.getOrderno());
+            OrderListResponse orderListResponse = new OrderListResponse();
+            orderListResponse.setOrderNo(odMain.getOrderno());
+            orderListResponse.setUsername(odMain.getUsername());
+            orderListResponse.setTotalPrice(odMain.getTotalprice());
+            List<OrderdetailResponse> collect = orderdetailList.stream().map(od -> {
+                OrderdetailResponse newOd = new OrderdetailResponse();
+                newOd.setCount(od.getCount());
+                newOd.setName(od.getName());
+                newOd.setPrice(od.getPrice());
+                return newOd;
+            }).collect(Collectors.toList());
+            orderListResponse.setOrderDetails(collect);
+
+            resultList.add(orderListResponse);
+        });
+        return resultList;
     }
 }
 

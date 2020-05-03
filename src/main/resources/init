@@ -1,0 +1,17 @@
+drop table if exists mydemo.`orderMain`;
+CREATE TABLE mydemo.`orderMain` (
+  `orderNo` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `totalPrice` int COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`orderNo`)
+) ENGINE=InnoDB AUTO_INCREMENT=1000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='訂單';
+
+drop table if exists mydemo.`orderDetail`;
+CREATE TABLE mydemo.`orderDetail` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `orderNo` int(11) NOT NULL,
+  `name` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `count` int COLLATE utf8mb4_unicode_ci NOT NULL,
+  `price` int COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='訂單詳情';
