@@ -22,7 +22,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         CommonResponse commonResponse = new CommonResponse();
         commonResponse.setCode("01");
         commonResponse.setMsg(ex.getMessage());
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setStatus(HttpStatus.OK.value());
         return commonResponse;
     }
 
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         CommonResponse commonResponse = new CommonResponse();
         commonResponse.setCode("01");
         commonResponse.setMsg(ex.getMessage());
-        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.setStatus(HttpStatus.OK.value());
         return commonResponse;
     }
 
@@ -46,6 +46,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         CommonResponse commonResponse = new CommonResponse();
         commonResponse.setCode("01");
         commonResponse.setMsg(errMsgs);
-        return handleExceptionInternal(ex, commonResponse, headers, HttpStatus.BAD_REQUEST, request);
+        return handleExceptionInternal(ex, commonResponse, headers, HttpStatus.OK, request);
     }
 }

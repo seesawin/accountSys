@@ -93,7 +93,7 @@ public class AuthController {
         if (users != null) {
             response.setMsg("Error: Username is already taken!");
             return ResponseEntity
-                    .badRequest()
+                    .ok()
                     .body(response);
         }
 
@@ -104,7 +104,7 @@ public class AuthController {
         if (users != null) {
             response.setMsg("Error: Email is already in use!");
             return ResponseEntity
-                    .badRequest()
+                    .ok()
                     .body(response);
         }
 
@@ -113,7 +113,7 @@ public class AuthController {
         if (!Collections.isEmpty(strRoles) && "".equals(strRolesList.get(0))) {
             response.setMsg("Error: Roles is empty!");
             return ResponseEntity
-                    .badRequest()
+                    .ok()
                     .body(response);
         }
 
