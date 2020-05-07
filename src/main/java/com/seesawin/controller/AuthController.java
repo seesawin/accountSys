@@ -8,12 +8,12 @@ import com.seesawin.models.Roles;
 import com.seesawin.models.Users;
 import com.seesawin.payload.request.LoginRequest;
 import com.seesawin.payload.request.SignupRequest;
+import com.seesawin.payload.response.CommonResponse;
 import com.seesawin.payload.response.JwtResponse;
 import com.seesawin.payload.response.MessageResponse;
 import com.seesawin.repository.RolesMapper;
 import com.seesawin.repository.UsersMapper;
 import com.seesawin.service.AuthService;
-import com.sun.tools.javac.util.StringUtils;
 import io.jsonwebtoken.lang.Collections;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,7 +54,7 @@ public class AuthController {
             value = "登入",
             notes = "登出由前端直接刪除localStorage中的token ",
             response = JwtResponse.class)
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) throws Exception {
         log.info("AuthController.login, LoginRequest : {}", loginRequest);
 
         Authentication authentication = authenticationManager.authenticate(
@@ -68,11 +67,15 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
+        CommonResponse response = new CommonResponse();
+        response.setCode("00");
+        response.setMsg("sucess");
+        response.setData(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
                 roles));
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup")
@@ -80,14 +83,18 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) throws Exception {
         log.info("AuthController.registerUser, SignupRequest : {}", signUpRequest);
 
+        CommonResponse response = new CommonResponse();
+        response.setCode("01");
+
         Users users = usersMapper.selectAll().stream()
                 .filter(user -> user.getUsername().equals(signUpRequest.getUsername()))
                 .findAny()
                 .orElse(null);
         if (users != null) {
+            response.setMsg("Error: Username is already taken!");
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
+                    .body(response);
         }
 
         users = usersMapper.selectAll().stream()
@@ -95,16 +102,19 @@ public class AuthController {
                 .findAny()
                 .orElse(null);
         if (users != null) {
+            response.setMsg("Error: Email is already in use!");
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+                    .body(response);
         }
 
         Set<String> strRoles = signUpRequest.getRole();
-        if (Collections.isEmpty(strRoles)) {
+        List<String> strRolesList = strRoles.stream().collect(Collectors.toList());
+        if (!Collections.isEmpty(strRoles) && "".equals(strRolesList.get(0))) {
+            response.setMsg("Error: Roles is empty!");
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Roles is empty!"));
+                    .body(response);
         }
 
         // Create new user's account
@@ -146,7 +156,9 @@ public class AuthController {
         }
 
         authService.saveUserAndRoles(user, roles);
-
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        response.setCode("00");
+        response.setMsg("sucess");
+        return ResponseEntity.ok(response);
     }
+
 }
