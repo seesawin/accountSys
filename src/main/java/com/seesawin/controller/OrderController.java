@@ -9,10 +9,13 @@ import com.seesawin.payload.response.OrderListResponse;
 import com.seesawin.payload.response.OrderdetailResponse;
 import com.seesawin.repository.OrderdetailMapper;
 import com.seesawin.repository.OrdermainMapper;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,13 +42,17 @@ public class OrderController {
             value = "新增訂單",
             notes = "資料新增、刪除、修改時，需要使用POST",
             response = CommonResponse.class)
+    @PreAuthorize("hasRole('USER')")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
+    })
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<?> save(@Valid @RequestBody OrderRequest orderRequest) {
         log.info("orderRquest: ", orderRequest);
 
         // calculate the total price
         Integer totalPrice = orderRequest.getOrderDetialRequestList().stream()
-                .map(od -> od.getPrice())
+                .map(od -> od.getPrice() * od.getCount())
                 .reduce(0, Integer::sum);
 
         // add order
@@ -59,11 +66,11 @@ public class OrderController {
 
         // add order details
         orderRequest.getOrderDetialRequestList().forEach(od -> {
-            Orderdetail detail = new Orderdetail();
-            detail.setCount(od.getCount());
-            detail.setName(od.getName());
-            detail.setPrice(od.getPrice());
-            detail.setOrderno(orderNo);
+            Orderdetail detail = Orderdetail.builder()
+                    .count(od.getCount())
+                    .name(od.getName())
+                    .price(od.getPrice())
+                    .orderno(orderNo).build();
             orderdetailMapper.insert(detail);
         });
 
@@ -82,22 +89,34 @@ public class OrderController {
             value = "根據orderNo查詢訂單(restful)",
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
+    @PreAuthorize("hasRole('USER')")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
+    })
     public ResponseEntity<?> getOrder(@Valid @PathVariable int orderNo) {
         Ordermain ordermain = ordermainMapper.selectByPrimaryKey(orderNo);
         List<Orderdetail> orderdetailList = orderdetailMapper.selectByOrderNo(orderNo);
+
+        if (orderdetailList.size() == 0) {
+            CommonResponse response = new CommonResponse();
+            response.setCode("00");
+            response.setMsg("orderNo: " + orderNo + " isn't exist");
+            return ResponseEntity.ok(response);
+        }
+
         List<OrderdetailResponse> collect = orderdetailList.stream().map(od -> {
-            OrderdetailResponse newOd = new OrderdetailResponse();
-            newOd.setCount(od.getCount());
-            newOd.setName(od.getName());
-            newOd.setPrice(od.getPrice());
+            OrderdetailResponse newOd = OrderdetailResponse.builder()
+                    .count(od.getCount())
+                    .name(od.getName())
+                    .price(od.getPrice()).build();
             return newOd;
         }).collect(Collectors.toList());
 
-        OrderListResponse orderListResponse = new OrderListResponse();
-        orderListResponse.setOrderNo(orderNo);
-        orderListResponse.setUsername(ordermain.getUsername());
-        orderListResponse.setTotalPrice(ordermain.getTotalprice());
-        orderListResponse.setOrderDetails(collect);
+        OrderListResponse orderListResponse = OrderListResponse.builder()
+                .orderNo(orderNo)
+                .username(ordermain.getUsername())
+                .totalPrice(ordermain.getTotalprice())
+                .orderDetails(collect).build();
 
         CommonResponse response = new CommonResponse();
         response.setCode("00");
@@ -111,11 +130,19 @@ public class OrderController {
             value = "根據username查詢訂單(restful)",
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
+    @PreAuthorize("hasRole('USER')")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
+    })
     public ResponseEntity<?> getOrder(@Valid @PathVariable String username) {
         List<OrderListResponse> orderListResponse = this.getOrderListResponse(username);
         CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
+        if (orderListResponse == null) {
+            response.setMsg(username + " don't have any order");
+            return ResponseEntity.ok(response);
+        }
         response.setData(orderListResponse);
         return ResponseEntity.ok(response);
     }
@@ -125,11 +152,19 @@ public class OrderController {
             value = "根據username查詢訂單(queryString)",
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
+    @PreAuthorize("hasRole('USER')")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
+    })
     public ResponseEntity<?> getOrderByQueryString(@Valid @RequestParam String username) {
         List<OrderListResponse> orderListResponse = this.getOrderListResponse(username);
         CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
+        if (orderListResponse == null) {
+            response.setMsg(username + " don't have any order");
+            return ResponseEntity.ok(response);
+        }
         response.setData(orderListResponse);
         return ResponseEntity.ok(response);
     }
@@ -139,11 +174,19 @@ public class OrderController {
             value = "根據username查詢訂單(data in the post's body)",
             notes = "資料查詢時使用GET",
             response = CommonResponse.class)
+    @PreAuthorize("hasRole('USER')")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
+    })
     public ResponseEntity<?> getOrderByPost(@Valid @RequestBody GetOrdeByUserNamerRequest getOrdeByUserNamerRequest) {
         List<OrderListResponse> orderListResponse = this.getOrderListResponse(getOrdeByUserNamerRequest.getUsername());
         CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
+        if (orderListResponse == null) {
+            response.setMsg(getOrdeByUserNamerRequest.getUsername() + " don't have any order");
+            return ResponseEntity.ok(response);
+        }
         response.setData(orderListResponse);
         return ResponseEntity.ok(response);
     }
@@ -151,20 +194,25 @@ public class OrderController {
     private List<OrderListResponse> getOrderListResponse(String username) {
         List<OrderListResponse> resultList = new ArrayList<>();
         List<Ordermain> ordermainList = ordermainMapper.selectByUsername(username);
+        if (ordermainList.size() == 0) {
+            return null;
+        }
         ordermainList.forEach(odMain -> {
             List<Orderdetail> orderdetailList = orderdetailMapper.selectByOrderNo(odMain.getOrderno());
-            OrderListResponse orderListResponse = new OrderListResponse();
-            orderListResponse.setOrderNo(odMain.getOrderno());
-            orderListResponse.setUsername(odMain.getUsername());
-            orderListResponse.setTotalPrice(odMain.getTotalprice());
+
             List<OrderdetailResponse> collect = orderdetailList.stream().map(od -> {
-                OrderdetailResponse newOd = new OrderdetailResponse();
-                newOd.setCount(od.getCount());
-                newOd.setName(od.getName());
-                newOd.setPrice(od.getPrice());
+                OrderdetailResponse newOd = OrderdetailResponse.builder()
+                        .count(od.getCount())
+                        .name(od.getName())
+                        .price(od.getPrice()).build();
                 return newOd;
             }).collect(Collectors.toList());
-            orderListResponse.setOrderDetails(collect);
+
+            OrderListResponse orderListResponse = OrderListResponse.builder()
+                    .orderNo(odMain.getOrderno())
+                    .username(odMain.getUsername())
+                    .totalPrice(odMain.getTotalprice())
+                    .orderDetails(collect).build();
 
             resultList.add(orderListResponse);
         });

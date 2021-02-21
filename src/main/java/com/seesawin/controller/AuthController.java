@@ -83,18 +83,12 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) throws Exception {
         log.info("AuthController.registerUser, SignupRequest : {}", signUpRequest);
 
-        CommonResponse response = new CommonResponse();
-        response.setCode("01");
-
         Users users = usersMapper.selectAll().stream()
                 .filter(user -> user.getUsername().equals(signUpRequest.getUsername()))
                 .findAny()
                 .orElse(null);
         if (users != null) {
-            response.setMsg("Error: Username is already taken!");
-            return ResponseEntity
-                    .ok()
-                    .body(response);
+            throw new Exception("Error: Username is already taken!");
         }
 
         users = usersMapper.selectAll().stream()
@@ -102,19 +96,13 @@ public class AuthController {
                 .findAny()
                 .orElse(null);
         if (users != null) {
-            response.setMsg("Error: Email is already in use!");
-            return ResponseEntity
-                    .ok()
-                    .body(response);
+            throw new Exception("Error: Email is already in use!");
         }
 
         Set<String> strRoles = signUpRequest.getRole();
         List<String> strRolesList = strRoles.stream().collect(Collectors.toList());
         if (!Collections.isEmpty(strRoles) && "".equals(strRolesList.get(0))) {
-            response.setMsg("Error: Roles is empty!");
-            return ResponseEntity
-                    .ok()
-                    .body(response);
+            throw new Exception("Error: Roles is empty!");
         }
 
         // Create new user's account
@@ -156,6 +144,8 @@ public class AuthController {
         }
 
         authService.saveUserAndRoles(user, roles);
+
+        CommonResponse response = new CommonResponse();
         response.setCode("00");
         response.setMsg("sucess");
         return ResponseEntity.ok(response);

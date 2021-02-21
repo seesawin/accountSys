@@ -4,7 +4,6 @@ import com.seesawin.payload.response.CommonResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,15 +15,6 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
-    @ExceptionHandler(AuthenticationException.class)
-    public CommonResponse handleAuthenticationException(AuthenticationException ex, HttpServletResponse response) {
-        CommonResponse commonResponse = new CommonResponse();
-        commonResponse.setCode("01");
-        commonResponse.setMsg(ex.getMessage());
-        response.setStatus(HttpStatus.OK.value());
-        return commonResponse;
-    }
 
     @ExceptionHandler(Exception.class)
     public CommonResponse handleException(Exception ex, HttpServletResponse response) {
@@ -41,7 +31,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(fieldError -> fieldError.getField() + ":" +fieldError.getDefaultMessage())
+                .map(fieldError -> fieldError.getField() + ":" + fieldError.getDefaultMessage())
                 .collect(Collectors.joining(";"));
         CommonResponse commonResponse = new CommonResponse();
         commonResponse.setCode("01");

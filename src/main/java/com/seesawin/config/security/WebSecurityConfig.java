@@ -1,6 +1,6 @@
 package com.seesawin.config.security;
 
-import com.seesawin.config.security.jwt.AuthEntryPointJwt;
+import com.seesawin.config.security.handler.RestAuthenticationEntryPoint;
 import com.seesawin.config.security.jwt.AuthTokenFilter;
 import com.seesawin.config.security.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * 请求匹配分发和授权
- * */
+ */
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
@@ -32,7 +32,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    private AuthEntryPointJwt unauthorizedHandler;
+    public RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -41,7 +41,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 自定义身份验证管理器
-     * */
+     */
     @Override
     public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
         authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
@@ -49,7 +49,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 认证管理者
-     * */
+     */
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -63,16 +63,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 通过在HttpSecurity配置器中设置额外的匹配器，可以对授权进行更细粒度的控制
-     * */
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .cors().and()
-                .csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+                .csrf().disable().exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
-                    .antMatchers("/api/auth/**", "/api/order/**").permitAll()
-                    .antMatchers("/api/test").authenticated().and()
+                .antMatchers("/api/auth/**").permitAll()
+                .antMatchers("/api/test", "/api/order/**").authenticated().and()
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 

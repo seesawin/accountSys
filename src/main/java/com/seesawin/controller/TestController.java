@@ -1,10 +1,11 @@
 package com.seesawin.controller;
 
+import com.seesawin.payload.response.CommonResponse;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,8 +22,11 @@ import java.security.Principal;
 @RequestMapping("/api/test")
 public class TestController {
     @GetMapping("/all")
-    public String allAccess() {
-        return "Public Content.";
+    public ResponseEntity<?> allAccess() {
+        CommonResponse response = new CommonResponse();
+        response.setCode("00");
+        response.setMsg("Public login sucess");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user")
@@ -31,8 +35,11 @@ public class TestController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
     })
-    public String userAccess(@ApiIgnore @AuthenticationPrincipal Principal principal) {
-        return "User Content." + principal.getName();
+    public ResponseEntity<?> userAccess(@ApiIgnore @AuthenticationPrincipal Principal principal) {
+        CommonResponse response = new CommonResponse();
+        response.setCode("00");
+        response.setMsg("user login sucess");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/mod")
@@ -41,8 +48,11 @@ public class TestController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
     })
-    public String moderatorAccess(@ApiIgnore @AuthenticationPrincipal Principal principal) {
-        return "Moderator Board." + principal.getName();
+    public ResponseEntity<?> moderatorAccess(@ApiIgnore @AuthenticationPrincipal Principal principal) {
+        CommonResponse response = new CommonResponse();
+        response.setCode("00");
+        response.setMsg("mod login sucess");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/admin")
@@ -51,7 +61,10 @@ public class TestController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "校驗令牌", required = true, dataType = "string", paramType = "header"),
     })
-    public String adminAccess(@ApiIgnore @AuthenticationPrincipal Principal principal) {
-        return "Admin Board." + principal.getName();
+    public ResponseEntity<?> adminAccess(@ApiIgnore @AuthenticationPrincipal Principal principal) {
+        CommonResponse response = new CommonResponse();
+        response.setCode("00");
+        response.setMsg("admin login sucess");
+        return ResponseEntity.ok(response);
     }
 }

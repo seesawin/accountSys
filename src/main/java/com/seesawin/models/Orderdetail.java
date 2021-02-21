@@ -1,5 +1,10 @@
 package com.seesawin.models;
 
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
 public class Orderdetail {
     private Integer id;
 
@@ -10,44 +15,4 @@ public class Orderdetail {
     private Integer count;
 
     private Integer price;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getOrderno() {
-        return orderno;
-    }
-
-    public void setOrderno(Integer orderno) {
-        this.orderno = orderno;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
-    }
-
-    public Integer getCount() {
-        return count;
-    }
-
-    public void setCount(Integer count) {
-        this.count = count;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
-    }
 }
