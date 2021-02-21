@@ -7,7 +7,8 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource    # 配置当前要使用的数据源的操作类型
     driver-class-name: com.mysql.cj.jdbc.Driver     # 配置MySQL的驱动程序类
 #    url: jdbc:mysql://207.148.96.113:3306/mydemo?serverTimezone=UTC         # 数据库连接地址
-    url: jdbc:mysql://192.168.43.237:3306/mydemo?serverTimezone=UTC         # 数据库连接地址
+#    url: jdbc:mysql://192.168.43.237:3306/mydemo?serverTimezone=UTC         # 数据库连接地址
+    url: jdbc:mysql://139.180.196.161:3306/mydemo?serverTimezone=UTC         # 数据库连接地址
     username: root                                  # 数据库用户名
     password: Seesaw123!                                  # 数据库连接密码
     dbcp2:                                          # 进行数据库连接池的配置
@@ -19,7 +20,7 @@ spring:
     database: 0
     password:
     port: 6379
-    host: 207.148.96.113
+    host: 139.180.196.161
     lettuce:
       pool:
         min-idle: 5

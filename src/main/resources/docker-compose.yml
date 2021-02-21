@@ -1,0 +1,59 @@
+version: '3'
+services:
+  redis:
+    image: redis:5.0.3
+    container_name: demo-redis
+    command:
+      ["redis-server","/usr/local/etc/redis/redis.conf"]
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - demo-redis-volumes:/data
+
+  mysql:
+    image: mysql:5.7.29
+    container_name: demo-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'Seesaw123!'
+      MYSQL_DATABASE: 'mydemo'
+      MYSQL_USER: 'root'
+      MYSQL_ROOT_HOST: '%'
+      TZ : "Asia/Shanghai"
+    volumes:
+      - demo-mysql-volumes:/var/lib/mysql
+      - ./mysql-dump:/docker-entrypoint-initdb.d
+
+  mongo-container:
+    image: mongo:3.4
+    container_name: demo-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+    ports:
+      - "27017:27017"
+    volumes:
+      - "./data/mongo:/data/db"
+      - "./data/mongo-entrypoint/:/docker-entrypoint-initdb.d/"
+    command: mongod
+
+  gshop-server:
+    image: seesawin/gshop-final
+    ports:
+      - "4000:4000"
+    links:
+      - "mongo-container"
+
+  demo-server:
+    image: seesawin/demo:0.0.9-SNAPSHOT
+    ports:
+      - "9420:9420"
+    links:
+      - "mysql"
+
+
+volumes:
+  demo-redis-volumes:
+  demo-mysql-volumes:
